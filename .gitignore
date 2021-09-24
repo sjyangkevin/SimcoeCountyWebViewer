@@ -4,6 +4,7 @@
 /src/sidebar/components/tools/styler
 sc_copyToServer.bat
 .vscode
+.vs
 config_dev.json
 
 # dependencies
