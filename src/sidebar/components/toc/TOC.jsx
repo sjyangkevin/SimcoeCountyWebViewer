@@ -13,6 +13,7 @@ import TOCFolderView from "./toc-folder-view/TOCFolderView.jsx";
 import * as helpers from "../../../helpers/helpers";
 import { LayerHelpers } from "../../../helpers/OLHelpers";
 import LegendApp from "../../../legend/App";
+import { OL_DATA_TYPES } from "../../../helpers/OLHelpers";
 
 class TOC extends Component {
 	constructor(props) {
@@ -400,43 +401,87 @@ class TOC extends Component {
 		if (layersGroup === undefined) layersGroup = layerGroups[0];
 
 		layerIndex += layersGroup.layers.length + 1;
-		TOCHelpers.makeLayer(layer.displayName, helpers.getUID(), layersGroup, layerIndex, true, 1, layer.layer, undefined, undefined, false, layer.styleUrl, (retLayer) => {
-			let layers = layersGroup.layers;
-			layers.unshift(retLayer);
-
-			layersGroup.layers = layers;
-			this.setLayerGroups(
-				this.state.type,
-				layerGroups.map((group) => (layersGroup.value === group.value ? layersGroup : group)),
-				() => {
-					//this.forceUpdate();
-					helpers.showMessage("Layer Added", AddedMessage(layersGroup.label, retLayer.displayName));
-
-					if (selected) {
-						window.emitter.emit("activeTocLayerGroup", layersGroup.value, () => {
-							window.emitter.emit("activeTocLayer", {
-								fullName: retLayer.name,
-								name: retLayer.displayName,
-								isVisible: retLayer.layer.getVisible(),
-								layerGroupName: retLayer.groupName,
-								layerGroup: retLayer.group,
-								index: retLayer.index,
+		// setTimeout(() => console.log(layer.layer.getSource().getFeatures()), 3000);
+		// setTimeout(() => console.log(LayerHelpers.getLayerSourceType(layer.layer.getSource())), 2000);
+		// setTimeout(() => console.log(layer.userLayer), 2000);
+		if (LayerHelpers.getLayerSourceType(layer.layer.getSource()) === OL_DATA_TYPES.Vector && layer.userLayer){
+			// if user add into a Vector layer, make it liveLayer
+			TOCHelpers.makeLayer(layer.displayName, helpers.getUID(), layersGroup, layerIndex, true, 1, layer.layer, undefined, undefined, true, layer.styleUrl, (retLayer) => {
+				let layers = layersGroup.layers;
+				layers.unshift(retLayer);
+	
+				layersGroup.layers = layers;
+				this.setLayerGroups(
+					this.state.type,
+					layerGroups.map((group) => (layersGroup.value === group.value ? layersGroup : group)),
+					() => {
+						//this.forceUpdate();
+						helpers.showMessage("Layer Added", AddedMessage(layersGroup.label, retLayer.displayName));
+	
+						if (selected) {
+							window.emitter.emit("activeTocLayerGroup", layersGroup.value, () => {
+								window.emitter.emit("activeTocLayer", {
+									fullName: retLayer.name,
+									name: retLayer.displayName,
+									isVisible: retLayer.layer.getVisible(),
+									layerGroupName: retLayer.groupName,
+									layerGroup: retLayer.group,
+									index: retLayer.index,
+								});
+								this.forceUpdate();
 							});
-							this.forceUpdate();
-						});
+						}
+						if (save) {
+							const isVisible = retLayer.layer.getVisible();
+							retLayer.layer.setVisible(true);
+							setTimeout(() => {
+								this.saveCustomLayer(retLayer, () => {
+									retLayer.layer.setVisible(isVisible);
+								});
+							}, 250);
+						}
 					}
-					if (save) {
-						const isVisible = retLayer.layer.getVisible();
-						retLayer.layer.setVisible(true);
-						setTimeout(() => {
-							this.saveCustomLayer(retLayer, () => {
-								retLayer.layer.setVisible(isVisible);
+				);
+			});
+		} else {
+			TOCHelpers.makeLayer(layer.displayName, helpers.getUID(), layersGroup, layerIndex, true, 1, layer.layer, undefined, undefined, false, layer.styleUrl, (retLayer) => {
+				let layers = layersGroup.layers;
+				layers.unshift(retLayer);
+	
+				layersGroup.layers = layers;
+				this.setLayerGroups(
+					this.state.type,
+					layerGroups.map((group) => (layersGroup.value === group.value ? layersGroup : group)),
+					() => {
+						//this.forceUpdate();
+						helpers.showMessage("Layer Added", AddedMessage(layersGroup.label, retLayer.displayName));
+	
+						if (selected) {
+							window.emitter.emit("activeTocLayerGroup", layersGroup.value, () => {
+								window.emitter.emit("activeTocLayer", {
+									fullName: retLayer.name,
+									name: retLayer.displayName,
+									isVisible: retLayer.layer.getVisible(),
+									layerGroupName: retLayer.groupName,
+									layerGroup: retLayer.group,
+									index: retLayer.index,
+								});
+								this.forceUpdate();
 							});
-						}, 250);
+						}
+						if (save) {
+							const isVisible = retLayer.layer.getVisible();
+							retLayer.layer.setVisible(true);
+							setTimeout(() => {
+								this.saveCustomLayer(retLayer, () => {
+									retLayer.layer.setVisible(isVisible);
+								});
+							}, 250);
+						}
 					}
-				}
-			);
-		});
+				);
+			});
+		}
 	};
 
 	//#endregion
