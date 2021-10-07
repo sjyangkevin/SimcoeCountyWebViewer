@@ -182,34 +182,50 @@ export class LayerHelpers {
 	static identifyFeatures(layer, coordinate, callback) {
 		const viewResolution = window.map.getView().getResolution();
 		const isArcGISLayer = LayerHelpers.getLayerSourceType(layer.getSource()) === OL_DATA_TYPES.ImageArcGISRest;
+		const isVectorLayer = LayerHelpers.getLayerSourceType(layer.getSource()) === OL_DATA_TYPES.Vector;
 		var url = isArcGISLayer
 			? layer.get("wfsUrl")
-			: layer.getSource().getFeatureInfoUrl(coordinate, viewResolution, "EPSG:3857", {
-					INFO_FORMAT: "application/json",
-			  });
-		const params = {};
-		const secureKey = layer.get("secureKey");
-		if (secureKey !== undefined) {
-			const headers = {};
-			headers[secureKey] = "GIS";
-			params["headers"] = headers;
-		}
-		if (isArcGISLayer) {
-			const arcgisResolution = `${window.map.getSize()[0]},${window.map.getSize()[1]},96`;
-			const extent = window.map.getView().calculateExtent();
-			const zoom = window.map.getView().getZoom();
-			const tolerance = 20 - zoom;
-			url = url
-				.replace("#GEOMETRY#", coordinate)
-				.replace("#TOLERANCE#", tolerance >= 10 ? tolerance : 10)
-				.replace("#EXTENT#", extent.join(","))
-				.replace("#RESOLUTION#", arcgisResolution);
-		}
-		if (url) {
-			helpers.getJSONWithParams(url, params, (result) => {
-				let features = isArcGISLayer ? LayerHelpers.parseESRIIdentify(result) : new GeoJSON().readFeatures(result);
-				callback(features.length > 0 ? features[0] : undefined);
+			: (isVectorLayer 
+				? ""
+				: layer.getSource().getFeatureInfoUrl(coordinate, viewResolution, "EPSG:3857", {
+				INFO_FORMAT: "application/json",})
+			);
+		if (!isVectorLayer){
+			// setTimeout(() => console.log(layer.getSource().getFeatureInfoUrl(coordinate, viewResolution, "EPSG:3857", {INFO_FORMAT: "application/json",})), 2000);
+			const params = {};
+			const secureKey = layer.get("secureKey");
+			if (secureKey !== undefined) {
+				const headers = {};
+				headers[secureKey] = "GIS";
+				params["headers"] = headers;
+			}
+			if (isArcGISLayer) {
+				const arcgisResolution = `${window.map.getSize()[0]},${window.map.getSize()[1]},96`;
+				const extent = window.map.getView().calculateExtent();
+				const zoom = window.map.getView().getZoom();
+				const tolerance = 20 - zoom;
+				url = url
+					.replace("#GEOMETRY#", coordinate)
+					.replace("#TOLERANCE#", tolerance >= 10 ? tolerance : 10)
+					.replace("#EXTENT#", extent.join(","))
+					.replace("#RESOLUTION#", arcgisResolution);
+			}
+			if (url) {
+				helpers.getJSONWithParams(url, params, (result) => {
+					let features = isArcGISLayer ? LayerHelpers.parseESRIIdentify(result) : new GeoJSON().readFeatures(result);
+					callback(features.length > 0 ? features[0] : undefined);
+				});
+			}
+		} else {
+			// setTimeout(() => console.log(layer.getSource().getFeatures()), 2000);
+			let pixel = window.map.getPixelFromCoordinate(coordinate);
+			let feature = window.map.forEachFeatureAtPixel(pixel, (feature, _) => {
+				return feature;
 			});
+			// console.log(feature.getGeometry());
+			// console.log(feature.getProperties());
+			callback(feature);
+			
 		}
 	}
 	static parseESRIIdentify(data) {
