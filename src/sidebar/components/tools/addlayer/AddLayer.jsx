@@ -335,7 +335,7 @@ class AddLayerForm extends Component {
 	addLayer = (layer) => {
 		let showLayer = true; // this.state.tabIndex !== 0;
 		let styleUrl = "";
-		let queryable = false;
+		let queryable = LayerHelpers.getLayerSourceType(layer.getSource()) === OL_DATA_TYPES.Vector ? true : false;
 		let opaque = false;
 		let infoFormat = "";
 		let xslTemplate = "";

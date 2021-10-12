@@ -834,6 +834,7 @@ class LHRS extends Component {
     window.map.removeLayer(this.vectorLayerA);
     window.map.removeLayer(this.vectorLayerB);
     window.map.removeLayer(this.vectorLayerLinear);
+    window.disableParcelClick = false;
     this._isMounted = false;
   }
 
