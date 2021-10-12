@@ -18,7 +18,7 @@
 	"showTermsOnStartup": true,
 	"googleAnalyticsID": "UA-3104541-53",
 	"appStatsUrl": "https://opengis.simcoe.ca/api/appStats/",
-	"apiUrl": "https://opengis.simcoe.ca/api/",
+	"apiUrl": "https://intra.dev.regionalgis.mto.gov.on.ca:5443/webapi/",
 	"apiUrlDev": "http://localhost:8085/",
 	"termsUrl": "https://maps.simcoe.ca/terms.html",
 	"whatsNewUrl": "https://county-of-simcoe-gis.github.io/SimcoeCountyWebViewer/WhatsNew/2021-03-22",
