@@ -135,7 +135,10 @@ class LHRS extends Component {
     window.emitter.addListener("mapLoaded", () => this.onMapLoad());
 
     // DISABLE PROPERTY CLICK
-    window.disableParcelClick = true;
+    // window.disableParcelClick = true;
+
+    // DISABLE IDENTIFY TOOL
+    window.disableIdentifyClick = true;
 
     // REGISTER MAP EVENTS
     this.onPointerMoveEvent = window.map.on("pointermove", this.onPointerMoveHandler);
@@ -834,7 +837,7 @@ class LHRS extends Component {
     window.map.removeLayer(this.vectorLayerA);
     window.map.removeLayer(this.vectorLayerB);
     window.map.removeLayer(this.vectorLayerLinear);
-    window.disableParcelClick = false;
+    window.disableIdentifyClick = false;
     this._isMounted = false;
   }
 

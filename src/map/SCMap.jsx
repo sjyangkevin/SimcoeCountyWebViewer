@@ -431,7 +431,7 @@ class SCMap extends Component {
 			if (window.config.leftClickIdentify) {
 				window.map.on("singleclick", (evt) => {
 					// DISABLE POPUPS
-					let disable = window.disableIdentifyClick || window.isDrawingOrEditing || window.isCoordinateToolOpen || window.isMeasuring || window.disableParcelClick;
+					let disable = window.disableIdentifyClick || window.isDrawingOrEditing || window.isCoordinateToolOpen
 					if (disable) return;
 
 					this.contextCoords = evt.coordinate;
