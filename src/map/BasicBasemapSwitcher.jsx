@@ -69,7 +69,9 @@ class BasicBasemapSwitcher extends Component {
           layer = helpers.getESRITileXYZLayer(service.url);
         }else if (service.type === "XYZ") {
           layer = helpers.getXYZLayer(service.url);
-        }else{
+        } else if (service.type === "ESRI_VECTOR_TILED") {
+          layer = helpers.getVectorTileLayer(service.url);
+        } else{
           layer = new VectorLayer({source: new VectorSource()});
         }
 
