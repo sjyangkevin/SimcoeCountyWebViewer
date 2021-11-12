@@ -5,8 +5,11 @@ import ReactDOM from "react-dom";
 // OPEN LAYERS
 import Feature from "ol/Feature";
 import * as ol from "ol";
-import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer } from "ol/layer.js";
-import { ImageWMS, OSM, TileArcGISRest, TileImage, Vector, XYZ } from "ol/source.js";
+import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer, VectorTile as VectorTileLayer } from "ol/layer.js";
+import { ImageWMS, OSM, TileArcGISRest, TileImage, Vector, XYZ} from "ol/source.js";
+import MVT from 'ol/format/MVT';
+import VectorTileSource from 'ol/source/VectorTile';
+import stylefunction from 'ol-mapbox-style/dist/stylefunction';
 
 //import {file as FileLoader} from "ol/featureloader.js";
 import { GeoJSON, WKT } from "ol/format.js";
@@ -84,14 +87,12 @@ export function addAppStat(type, description) {
     if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") return;
     const build = (appName, version) => `${appName}-${version}`;
     const appStatsTemplate = (build, type, description) => `${window.config.appStatsUrl}${build}/${type}/${description}`;
-    let buildname = window.location.pathname.split("/").join("");
-    if (window.version !== undefined && window.version !== null) {
-      if (window.app !== undefined && window.app !== null) {
-        buildname += build(window.app, window.version);
-      } else {
-        buildname = build(buildname, window.version);
-      }
+    let buildname = "";
+    if (window.homepage) buildname += window.homepage;
+    if (window.version) {
+      buildname = build(window.app ? window.app : window.location.pathname.split("/").join(""), window.version);
     }
+    if (window.homepage) buildname += "-" + window.homepage;
     if (buildname === "") buildname = "Unknown";
     httpGetText(appStatsTemplate(buildname, type, description));
   });
@@ -351,6 +352,45 @@ export function getImageWMSLayer(serverURL, layers, serverType = "geoserver", cq
   });
   return imageLayer;
 }
+
+//GET VectorTie Layer
+export function getVectorTileLayer(url) {
+  let layer = new VectorTileLayer({
+    renderMode: 'vector',
+    reload: Infinity,
+    declutter: true,
+    //extent: extent,
+    source: new VectorTileSource({
+      attributions: "LIO VectorTiles Test",
+      format: new MVT(),
+      url: url + "/tile/{z}/{y}/{x}.pbf",
+      maxZoom: 26,
+      //rootPath: url + "/resources/styles/root.json",
+      //spritePath: url + "/resources/sprites/sprite.json",
+      //pngPath: url + "/resources/sprites/sprite.png",   
+    }),
+    id: "vTileLayer",
+    tilePixelRatio: 8,
+  });
+  //let rootPath= url + "/tile/{z}/{y}/{x}.pbf"; // rootPath for applySytle
+  let rootPath = url + "/resources/styles/root.json";
+  let spritePath = url + "/resources/sprites/sprite.json";
+  let pngPath = url + "/resources/sprites/sprite.png";
+  fetch(rootPath).then(function (response) {
+    response.json().then(function (glStyle) {
+      fetch(spritePath).then(function (response) {
+        response.json().then(function (spriteData) {
+  
+          stylefunction(layer, glStyle, "esri", undefined, spriteData, pngPath);
+          
+           });
+        });
+    });
+  });
+  
+  return layer //StyledLayer is returned;
+};
+
 
 export function scaleToResolution(scale) {
   const DOTS_PER_INCH = 96;
